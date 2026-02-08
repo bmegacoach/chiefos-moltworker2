@@ -1,0 +1,53 @@
+# memU Docker Compose Deployment
+# Deploy to InterServer VPS alongside other projects
+
+version: '3.8'
+
+services:
+  memu-server:
+    image: nevamindai/memu-server:latest
+    container_name: memu-server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-memu_secure_password}@memu-postgres:5432/memu
+    depends_on:
+      memu-postgres:
+        condition: service_healthy
+    networks:
+      - memu-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.memu.rule=Host(`memu.yourdomain.com`)"
+      - "traefik.http.services.memu.loadbalancer.server.port=8000"
+
+  memu-postgres:
+    image: pgvector/pgvector:pg16
+    container_name: memu-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-memu_secure_password}
+      - POSTGRES_DB=memu
+    volumes:
+      - memu-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - memu-network
+    # Do NOT expose postgres to the internet - internal only
+    # ports:
+    #   - "5432:5432"
+
+volumes:
+  memu-postgres-data:
+    driver: local
+
+networks:
+  memu-network:
+    driver: bridge

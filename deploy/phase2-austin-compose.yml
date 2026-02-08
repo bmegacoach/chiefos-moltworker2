@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  # Browser for OpenClaw/Moltbot to control
+  browser:
+    image: blairnight/openclaw-browser:latest
+    container_name: moltworker-browser
+    restart: unless-stopped
+    ports:
+      - "9222:9222" # CDP port
+    environment:
+      - TIMEOUT=60000
+    networks:
+      - secure-enclave
+
+  # Future: Dev Container for isolated code execution
+  # dev-runner:
+  #   image: node:20-slim
+  #   ...
+
+networks:
+  secure-enclave:
+    driver: bridge

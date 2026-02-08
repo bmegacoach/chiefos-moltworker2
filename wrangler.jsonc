@@ -1,0 +1,128 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "chiefos-moltworker2",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-05-06",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "observability": {
+    "enabled": true
+  },
+  // Static assets for admin UI (built by vite)
+  /*
+  "assets": {
+    "directory": "./dist/client",
+    "not_found_handling": "single-page-application",
+    "html_handling": "auto-trailing-slash",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  */
+  // Allow importing HTML files as text modules and PNG files as binary
+  "rules": [
+    {
+      "type": "Text",
+      "globs": [
+        "**/*.html",
+        "**/*.sh",
+        "**/*.md"
+      ],
+      "fallthrough": false
+    },
+    {
+      "type": "Data",
+      "globs": [
+        "**/*.png"
+      ],
+      "fallthrough": false
+    }
+  ],
+  // Build command for vite
+  // Build command for vite
+  /*
+  "build": {
+    "command": "npm run build"
+  },
+  */
+  // Container configuration (enabled)
+  /*
+  "containers": [
+    {
+      "class_name": "Sandbox",
+      "image": "./Dockerfile",
+      "instance_type": "standard-4",
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "class_name": "Sandbox",
+        "name": "Sandbox"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "new_sqlite_classes": [
+        "Sandbox"
+      ],
+      "tag": "v1"
+    }
+  ],
+  */
+  // R2 bucket for persistent storage (moltbot data, conversations, etc.)
+  "r2_buckets": [
+    {
+      "binding": "MOLTBOT_BUCKET",
+      "bucket_name": "chiefos-memory","preview_bucket_name": "chiefos-memory"
+    },
+    {
+      "binding": "CHIEFSOS_LTM",
+      "bucket_name": "chiefos-memory","preview_bucket_name": "chiefos-memory"
+    },
+    {
+      "binding": "ECOSYSTEM_BUCKET",
+      "bucket_name": "chiefos-memory","preview_bucket_name": "chiefos-memory"
+    }
+  ],
+  "vars": {
+    "KIMI_BASE_URL": "https://platform.moonshot.ai/v1",
+    "MODELS": "kimi-k2.5-instant,kimi-k2.5-thinking,kimi-k2.5-swarm",
+    // Ecosystem Manager
+    "ECOSYSTEM_ENABLED": "true",
+    "BASE_RPC_URL": "https://mainnet.base.org",
+    "LZ_ENDPOINT_ADDRESS": "0x1a44076050125825900e736c501f859c50fE728c",
+    // ChiefPM Task Manager
+    "CHIEFPM_ENABLED": "true",
+    // Mode Configuration
+    "LIGHTWEIGHT_MODE": "true",
+    "DEV_MODE": "true",
+    "DEBUG_ROUTES": "true",
+    // Notification Configuration
+    "DISCORD_CHANNEL_DAILY": "1468062917755801640",
+    "DISCORD_CHANNEL_OPS": "1468062917755801640",
+    // memU Short-Term Memory (set MEMU_API_URL once VPS is deployed)
+    "MEMU_API_URL": "https://memu.placeholder"
+  },
+  // KV namespace for ChiefPM task storage
+  "kv_namespaces": [
+    {
+      "binding": "CHIEFPM_TASKS_KV",
+      "id": "40dd59c1a71b425199e00c7e63ffcf56"
+    }
+  ],
+  // Cron trigger to sync moltbot data to R2 every 5 minutes
+  // Also runs Ecosystem Manager 4-hour reports (every 4 hours)
+  "triggers": {
+    "crons": [
+      "*/5 * * * *",
+      "0 */4 * * *"
+    ]
+  },
+  // Browser Rendering binding for CDP shim
+  "browser": {
+    "binding": "BROWSER"
+  }
+}
